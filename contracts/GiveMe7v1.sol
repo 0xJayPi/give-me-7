@@ -6,22 +6,21 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 error GiveMe7v1__NotEnoughEth();
 error GiveMe7v1__TransferFailed();
+error GiveMe7v1__NotOwner();
 
 contract GiveMe7v1 is Initializable {
-    uint256 public nonce;
-    uint256 public prize;
+    uint256 private nonce;
+    uint256 private prize;
 
     event Roll(address indexed player, uint256 roll);
-    event Winner(address winner, uint256 amount);
+    event Winner(address indexed winner, uint256 amount);
+
+    receive() external payable {}
 
     function initialize() public payable initializer {
         resetPrize();
         nonce = 0;
         prize = 0;
-    }
-
-    function resetPrize() private {
-        prize = ((address(this).balance * 10) / 100);
     }
 
     function rollTheDice() public payable {
@@ -31,10 +30,10 @@ contract GiveMe7v1 is Initializable {
 
         bytes32 prevHash = blockhash(block.number - 1);
         bytes32 hash = keccak256(abi.encodePacked(prevHash, address(this), nonce));
-        uint256 roll = uint256(hash) % 8;
+        uint256 roll = uint256(hash) % 9;
 
         nonce++;
-        prize += ((msg.value * 40) / 100);
+        prize += ((msg.value * 90) / 100);
 
         emit Roll(msg.sender, roll);
         console.log("Dice rolled ", roll);
@@ -53,5 +52,15 @@ contract GiveMe7v1 is Initializable {
         emit Winner(msg.sender, amount);
     }
 
-    receive() external payable {}
+    function getNonce() public view returns (uint256) {
+        return nonce;
+    }
+
+    function getPrize() public view returns (uint256) {
+        return prize;
+    }
+
+    function resetPrize() private {
+        prize = ((address(this).balance * 90) / 100);
+    }
 }
