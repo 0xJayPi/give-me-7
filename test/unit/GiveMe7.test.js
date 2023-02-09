@@ -9,12 +9,11 @@ const { developmentChains } = require("../../helper-hardhat-config")
 
           beforeEach(async () => {
               const giveMe7v1 = await ethers.getContractFactory("GiveMe7v1")
-              proxy = await upgrades.deployProxy(giveMe7v1, {
-                  value: ethers.utils.parseEther("1"),
-              })
+              proxy = await upgrades.deployProxy(giveMe7v1)
               await proxy.deployed()
 
-              //   await proxy.receive({ value: ethers.utils.parseEther("1") })
+              //   https://stackoverflow.com/questions/69825236/ethers-js-send-money-to-a-smart-contract-receive-function
+              //   await proxy.call{ value: ethers.utils.parseEther("1") }("")
               //   const prize = await proxy.getPrize()
               //   console.log(`Initial prize ${prize.toString()}`)
 
