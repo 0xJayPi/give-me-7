@@ -97,6 +97,10 @@ contract GiveMe7v2 is VRFConsumerBaseV2 {
         return prize;
     }
 
+    function getVrfCoord() public view returns (address) {
+        return address(vrfCoordinator);
+    }
+
     function resetPrize() private {
         prize = ((address(this).balance * 90) / 100);
     }
