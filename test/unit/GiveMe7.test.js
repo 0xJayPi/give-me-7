@@ -1,8 +1,8 @@
 const { assert, expect } = require("chai")
 const { getNamedAccounts, deployments, ethers, network, upgrades } = require("hardhat")
-const { developmentChains } = require("../../helper-hardhat-config")
+const chainId = network.config.chainId
 
-!developmentChains.includes(network.name)
+chainId != 31337
     ? describe.skip
     : describe("GiveMe7 Unit testing", () => {
           let proxy

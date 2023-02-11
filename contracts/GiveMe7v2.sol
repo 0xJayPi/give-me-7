@@ -11,6 +11,11 @@ error GiveMe7v2__TransferFailed();
 error GiveMe7v2__NotOwner();
 
 contract GiveMe7v2 is VRFConsumerBaseV2 {
+    /**
+     * Todo:
+     * 1-Refactor needed for variables, immutable, constants, add s_ for storage
+     * 2-resetPrize() in the constructor/initializer?
+     */
     uint256 private nonce;
     uint256 private prize;
 
@@ -22,7 +27,7 @@ contract GiveMe7v2 is VRFConsumerBaseV2 {
     uint16 private REQUEST_CONFIRMATIONS = 3;
     uint32 private NUM_WORDS = 1;
 
-    event RequestWinner(uint256 indexed requestId);
+    event RequestRandomNumbers(uint256 indexed requestId);
     event Roll(address indexed player, uint256 roll);
     event Winner(address indexed winner, uint256 amount);
 
@@ -32,11 +37,13 @@ contract GiveMe7v2 is VRFConsumerBaseV2 {
     constructor(
         address _vrfCoordinatorV2,
         uint64 _subscriptionId,
-        bytes32 _gasLane
+        bytes32 _gasLane,
+        uint32 _callbackGasLimit
     ) VRFConsumerBaseV2(_vrfCoordinatorV2) {
         vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinatorV2);
         subscriptionId = _subscriptionId;
         gasLane = _gasLane;
+        callbackGasLimit = _callbackGasLimit;
 
         resetPrize(); // May be removed
         nonce = 0;
@@ -63,13 +70,14 @@ contract GiveMe7v2 is VRFConsumerBaseV2 {
             callbackGasLimit,
             NUM_WORDS
         );
-        emit RequestWinner(requestId);
+        emit RequestRandomNumbers(requestId);
     }
 
     function fulfillRandomWords(
         uint256 /* requestId */,
         uint256[] memory randomWords
     ) internal override {
+        console.log("fulfillRandomWords called");
         uint256 roll = randomWords[0] % 9;
 
         emit Roll(msg.sender, roll);

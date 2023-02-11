@@ -24,7 +24,7 @@ Final project of the Alchemy University's Ethereum Bootcamp.
 
 ## Hardhat Setup
 
-* Run ```yarn add --dev @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers @nomiclabs/hardhat-etherscan @nomiclabs/hardhat-waffle chai ethereum-waffle hardhat hardhat-deploy hardhat-gas-reporter prettier prettier-plugin-solidity solidity-coverage dotenv @openzeppelin/hardhat-upgrades @openzeppelin/contracts @openzeppelin/contracts-upgradeable```.
+* Run ```yarn add --dev @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers @nomiclabs/hardhat-etherscan @nomiclabs/hardhat-waffle chai ethereum-waffle hardhat hardhat-deploy hardhat-gas-reporter prettier prettier-plugin-solidity solidity-coverage dotenv @openzeppelin/hardhat-upgrades @openzeppelin/contracts @openzeppelin/contracts-upgradeable @chainlink/contracts```.
 * Add/copy .gitignore, .prettierrc, .prettierignore, README.md, hardhat-config.js, helper-hardhat-config.js
 
 # Usage

@@ -1,6 +1,6 @@
 const { ethers, network } = require("hardhat")
 const { networkConfig } = require("../helper-hardhat-config")
-const FUND_LINK = ethers.utils.parseEther("1")
+const FUND_LINK = ethers.utils.parseEther("100")
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     console.log("------| Deploying Proxy with GiveMe7v2...")
@@ -16,13 +16,18 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         txReceipt = await txResponse.wait()
         subscriptionId = txReceipt.events[0].args.subId
         await vrfCoordinatorV2Mock.fundSubscription(subscriptionId, FUND_LINK)
-        console.log("Mock subscription complete")
+        console.log(`Mock subscription complete. Subscription ID: ${subscriptionId}`)
     } // else {
     //     vrfCoordinatorV2Address = networkConfig[chainId]["vrfCoordinatorV2"]
     //     subscriptionId = networkConfig[chainId]["subscriptionId"]
     // }
 
-    const arguments = [vrfCoordinatorV2Address, subscriptionId, networkConfig[chainId]["gasLane"]]
+    const arguments = [
+        vrfCoordinatorV2Address,
+        subscriptionId,
+        networkConfig[chainId]["gasLane"],
+        networkConfig[chainId]["callbackGasLimit"],
+    ]
 
     const giveMe7v2 = await deploy("GiveMe7v2", {
         from: deployer,
