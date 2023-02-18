@@ -10,4 +10,4 @@ module.exports = async function () {
     console.log("Proxy Deployed!")
 }
 
-module.exports.tags = ["v1", "all", "proxy"]
+module.exports.tags = ["v1", "all", "proxy", "main"]

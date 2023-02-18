@@ -4,21 +4,31 @@ pragma solidity 0.8.7;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+// import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "./chainlink/VRFConsumerBaseV2Upgradeable.sol";
+// import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 error GiveMe7v2__NotEnoughEth();
 error GiveMe7v2__TransferFailed();
 error GiveMe7v2__NotOwner();
 
-contract GiveMe7v2 is Initializable, VRFConsumerBaseV2Upgradeable {
+// I use this to make sure order of variables are kept stable
+// First all inerited variables and then the main contract ones
+contract GiveMe7v1Storage {
+    // uint256[1] public __gap;
+    uint256 public nonce;
+    uint256 public prize;
+}
+
+contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradeable {
     /**
      * Todo:
      * 1-Refactor needed for variables, immutable, constants, add s_ for storage
      * 2-resetPrize() in the constructor/initializer?
      */
-    uint256 private nonce;
-    uint256 private prize;
+    // uint256[8] __gap;
+    // uint256 private nonce;
+    // uint256 private prize;
     mapping(uint256 => address) players;
 
     // Chainlink VRF Variables
@@ -52,12 +62,14 @@ contract GiveMe7v2 is Initializable, VRFConsumerBaseV2Upgradeable {
     //     prize = 0;
     // }
 
-    function initialize(
+    // function initialize() public initializer {}
+
+    function setVRF(
         address _vrfCoordinatorV2,
         uint64 _subscriptionId,
         bytes32 _gasLane,
         uint32 _callbackGasLimit
-    ) public initializer {
+    ) public {
         __VRFConsumerBaseV2Upgradeable_init(_vrfCoordinatorV2);
         vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinatorV2);
         subscriptionId = _subscriptionId;
@@ -66,9 +78,9 @@ contract GiveMe7v2 is Initializable, VRFConsumerBaseV2Upgradeable {
         REQUEST_CONFIRMATIONS = 3;
         NUM_WORDS = 1;
 
-        resetPrize(); // May be removed
-        nonce = 0;
-        prize = 0;
+        // resetPrize(); // May be removed
+        // nonce = 0;
+        // prize = 0;
     }
 
     function rollTheDice() public payable {

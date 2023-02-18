@@ -3,14 +3,16 @@ pragma solidity 0.8.7;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 error GiveMe7v1__NotEnoughEth();
 error GiveMe7v1__TransferFailed();
 error GiveMe7v1__NotOwner();
 
 contract GiveMe7v1 is Initializable {
-    uint256 private nonce;
-    uint256 private prize;
+    // uint256[49] private __gap;
+    uint256 public nonce;
+    uint256 public prize;
 
     event Roll(address indexed player, uint256 roll);
     event Winner(address indexed winner, uint256 amount);

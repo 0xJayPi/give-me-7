@@ -109,7 +109,7 @@ abstract contract VRFConsumerBaseV2Upgradeable is Initializable {
 
     // See https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable
     // See https://github.com/smartcontractkit/chainlink/issues/4976
-    function __VRFConsumerBaseV2Upgradeable_init(address _vrfCoordinator) internal initializer {
+    function __VRFConsumerBaseV2Upgradeable_init(address _vrfCoordinator) internal {
         vrfCoordinator = _vrfCoordinator;
     }
 
