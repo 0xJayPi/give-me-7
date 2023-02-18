@@ -8,6 +8,8 @@ chainId != 31337
           let proxy
 
           beforeEach(async () => {
+              //   await deployments.fixture(["v1", "mocks"])
+
               const giveMe7v1 = await ethers.getContractFactory("GiveMe7v1")
               proxy = await upgrades.deployProxy(giveMe7v1)
               await proxy.deployed()
