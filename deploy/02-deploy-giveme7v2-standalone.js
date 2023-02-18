@@ -29,7 +29,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         networkConfig[chainId]["callbackGasLimit"],
     ]
 
-    const giveMe7v2 = await deploy("GiveMe7v2", {
+    const giveMe7v2 = await deploy("GiveMe7v2StandAlone", {
         from: deployer,
         args: arguments,
         log: true,

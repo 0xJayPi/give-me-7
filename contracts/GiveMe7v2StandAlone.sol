@@ -10,7 +10,7 @@ error GiveMe7v2__NotEnoughEth();
 error GiveMe7v2__TransferFailed();
 error GiveMe7v2__NotOwner();
 
-contract GiveMe7v2 is VRFConsumerBaseV2 {
+contract GiveMe7v2StandAlone is VRFConsumerBaseV2 {
     /**
      * Todo:
      * 1-Refactor needed for variables, immutable, constants, add s_ for storage
@@ -18,6 +18,7 @@ contract GiveMe7v2 is VRFConsumerBaseV2 {
      */
     uint256 private nonce;
     uint256 private prize;
+    mapping(uint256 => address) players;
 
     // Chainlink VRF Variables
     VRFCoordinatorV2Interface private vrfCoordinator;
@@ -71,10 +72,11 @@ contract GiveMe7v2 is VRFConsumerBaseV2 {
             NUM_WORDS
         );
         emit RequestRandomNumbers(requestId);
+        players[requestId] = msg.sender;
     }
 
     function fulfillRandomWords(
-        uint256 /* requestId */,
+        uint256 requestId,
         uint256[] memory randomWords
     ) internal override {
         console.log("fulfillRandomWords called");
@@ -88,13 +90,14 @@ contract GiveMe7v2 is VRFConsumerBaseV2 {
         }
 
         uint256 amount = prize;
-        (bool sent, ) = msg.sender.call{value: amount}("");
+        (bool sent, ) = players[requestId].call{value: amount}("");
         if (!sent) {
             revert GiveMe7v2__TransferFailed();
         }
 
         resetPrize();
         emit Winner(msg.sender, amount);
+        console.log("Winner event emitted!");
     }
 
     function getNonce() public view returns (uint256) {

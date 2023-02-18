@@ -22,6 +22,7 @@ async function mockVRF() {
         `success: ${txReceiptM.events[1].args.success}`
     )
     console.log("Random Numbers fulfilled!!")
+    console.log(txReceiptM.events[1])
 }
 
 mockVRF()
