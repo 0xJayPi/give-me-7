@@ -13,6 +13,7 @@ contract GiveMe7v1 is Initializable {
     // uint256[49] private __gap;
     uint256 internal nonce;
     uint256 internal prize;
+    address internal owner;
 
     event Roll(address indexed player, uint256 roll);
     event Winner(address indexed winner, uint256 amount);
@@ -23,6 +24,8 @@ contract GiveMe7v1 is Initializable {
         resetPrize();
         nonce = 0;
         prize = 0;
+        owner = msg.sender;
+        console.log(msg.sender);
     }
 
     function rollTheDice() public payable {

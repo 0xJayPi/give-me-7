@@ -1,12 +1,12 @@
 const { assert, expect } = require("chai")
-const { ethers, network, upgrades } = require("hardhat")
+const { ethers, network, upgrades, getNamedAccounts } = require("hardhat")
 const { networkConfig } = require("../../helper-hardhat-config")
 const chainId = network.config.chainId
 
 chainId != 31337
     ? describe.skip
     : describe("GiveMe7 Unit testing", () => {
-          let proxy, txResponse, txReceipt, vrfCoordinatorV2Mock, nonce
+          let proxy, txResponse, txReceipt, vrfCoordinatorV2Mock, nonce, subscriptionId
 
           beforeEach(async () => {
               //   await deployments.fixture(["v1", "mocks"])
@@ -88,7 +88,7 @@ chainId != 31337
                   vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
                   txResponse = await vrfCoordinatorV2Mock.createSubscription()
                   txReceipt = await txResponse.wait()
-                  const subscriptionId = txReceipt.events[0].args.subId
+                  subscriptionId = txReceipt.events[0].args.subId
                   await vrfCoordinatorV2Mock.fundSubscription(
                       subscriptionId,
                       ethers.utils.parseEther("100")
@@ -124,6 +124,20 @@ chainId != 31337
                       nonce++
                       const upgrNonce = await proxy.getNonce()
                       assert.equal(nonce.toString(), upgrNonce.toString())
+                  })
+
+                  it("Should allow only the Owner to call setVRF", async () => {
+                      const user1 = (await getNamedAccounts()).user1
+                      await expect(
+                          proxy
+                              .connect(user1)
+                              .setVRF(
+                                  vrfCoordinatorV2Mock.address,
+                                  subscriptionId,
+                                  networkConfig[chainId]["gasLane"],
+                                  networkConfig[chainId]["callbackGasLimit"]
+                              )
+                      ).to.be.revertedWith("GiveMe7v2__NotOwner()")
                   })
 
                   it("Should RequestRandomNumbers when calling rollTheDice", async () => {

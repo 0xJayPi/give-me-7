@@ -18,6 +18,7 @@ contract GiveMe7v1Storage {
     // uint256[1] public __gap;
     uint256 internal nonce;
     uint256 internal prize;
+    address internal owner;
 }
 
 contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradeable {
@@ -42,6 +43,13 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
     event RequestRandomNumbers(uint256 indexed requestId);
     event Roll(address indexed player, uint256 roll);
     event Winner(address indexed winner, uint256 amount);
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) {
+            revert GiveMe7v2__NotOwner();
+        }
+        _;
+    }
 
     receive() external payable {}
 
@@ -69,7 +77,7 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
         uint64 _subscriptionId,
         bytes32 _gasLane,
         uint32 _callbackGasLimit
-    ) public {
+    ) public onlyOwner {
         __VRFConsumerBaseV2Upgradeable_init(_vrfCoordinatorV2);
         vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinatorV2);
         subscriptionId = _subscriptionId;
