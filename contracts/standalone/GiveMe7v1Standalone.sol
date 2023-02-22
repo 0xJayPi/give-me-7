@@ -2,14 +2,13 @@
 pragma solidity 0.8.7;
 
 import "hardhat/console.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 error GiveMe7v1__NotEnoughEth();
 error GiveMe7v1__TransferFailed();
 error GiveMe7v1__NotOwner();
 
-contract GiveMe7v1 is Initializable {
+contract GiveMe7v1Standalone {
     // uint256[49] private __gap;
     uint256 internal nonce;
     uint256 internal prize;
@@ -20,7 +19,7 @@ contract GiveMe7v1 is Initializable {
 
     receive() external payable {}
 
-    function initialize() public payable initializer {
+    constructor() payable {
         resetPrize();
         nonce = 0;
         prize = 0;
@@ -40,7 +39,7 @@ contract GiveMe7v1 is Initializable {
         prize += ((msg.value * 90) / 100);
 
         emit Roll(msg.sender, roll);
-        console.log("Dice rolled ", roll);
+        console.log("Dice rolled in GiveMe7v1", roll);
 
         if (roll != 7) {
             return;
