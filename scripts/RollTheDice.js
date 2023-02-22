@@ -1,4 +1,4 @@
-const { ethers, networl } = require("hardhat")
+const { ethers, network } = require("hardhat")
 
 async function mockVRF() {
     const giveMe7v2 = await ethers.getContract("GiveMe7v2")

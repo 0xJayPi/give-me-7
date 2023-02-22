@@ -3,6 +3,8 @@
 .encryptedKey.json
 gas-report.txt
 .openzeppelin/
+/bin
+todo.md
 
 # dependencies
 /node_modules

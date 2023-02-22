@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 // import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "./chainlink/VRFConsumerBaseV2Upgradeable.sol";
-// import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+// import "@openzeppelin/contracts/access/Ownable.sol";
 
 error GiveMe7v2__NotEnoughEth();
 error GiveMe7v2__TransferFailed();
@@ -16,8 +16,8 @@ error GiveMe7v2__NotOwner();
 // First all inerited variables and then the main contract ones
 contract GiveMe7v1Storage {
     // uint256[1] public __gap;
-    uint256 public nonce;
-    uint256 public prize;
+    uint256 internal nonce;
+    uint256 internal prize;
 }
 
 contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradeable {
@@ -63,7 +63,7 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
     // }
 
     // function initialize() public initializer {}
-
+    // Add onlyOwner or similar
     function setVRF(
         address _vrfCoordinatorV2,
         uint64 _subscriptionId,

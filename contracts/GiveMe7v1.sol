@@ -11,8 +11,8 @@ error GiveMe7v1__NotOwner();
 
 contract GiveMe7v1 is Initializable {
     // uint256[49] private __gap;
-    uint256 public nonce;
-    uint256 public prize;
+    uint256 internal nonce;
+    uint256 internal prize;
 
     event Roll(address indexed player, uint256 roll);
     event Winner(address indexed winner, uint256 amount);
