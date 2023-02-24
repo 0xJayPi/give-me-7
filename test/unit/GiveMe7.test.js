@@ -137,10 +137,7 @@ chainId != 31337
                   txReceipt = await txResponse.wait()
               })
 
-              // TODO: add test to validate balance
-              // TODO: add test to validate that the coordinator can be initialized only once
-
-              it("Should revert if trying to setVRF again", async () => {
+              it("Should revert if calling setVRF() twice", async () => {
                   await expect(
                       proxy.setVRF(
                           vrfCoordinatorV2Mock.address,
