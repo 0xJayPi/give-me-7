@@ -137,6 +137,20 @@ chainId != 31337
                   txReceipt = await txResponse.wait()
               })
 
+              // TODO: add test to validate balance
+              // TODO: add test to validate that the coordinator can be initialized only once
+
+              it("Should revert if trying to setVRF again", async () => {
+                  await expect(
+                      proxy.setVRF(
+                          vrfCoordinatorV2Mock.address,
+                          subscriptionId,
+                          networkConfig[chainId]["gasLane"],
+                          networkConfig[chainId]["callbackGasLimit"]
+                      )
+                  ).to.be.reverted
+              })
+
               it("Should initiate variables with values from V1", async () => {
                   nonce++
                   const upgrNonce = await proxy.getNonce()
