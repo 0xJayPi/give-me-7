@@ -1,5 +1,3 @@
-// TODO: refactor me
-
 const { assert, expect } = require("chai")
 const { BigNumber } = require("ethers")
 const { ethers, network, upgrades, getNamedAccounts } = require("hardhat")
@@ -13,8 +11,7 @@ let proxy,
     subscriptionId,
     giveMe7v1,
     giveMe7v2,
-    hackGiveMe7v1,
-    giveMe7v1Standalone
+    hackGiveMe7v1
 
 chainId != 31337
     ? describe.skip
