@@ -1,3 +1,5 @@
+// TODO: refactor me
+
 const { assert, expect } = require("chai")
 const { BigNumber } = require("ethers")
 const { ethers, network, upgrades, getNamedAccounts } = require("hardhat")
@@ -10,36 +12,23 @@ let proxy,
     nonce,
     subscriptionId,
     giveMe7v1,
+    giveMe7v2,
     hackGiveMe7v1,
-    provider,
     giveMe7v1Standalone
 
 chainId != 31337
     ? describe.skip
     : describe("GiveMe7 Unit testing", () => {
           beforeEach(async () => {
-              //   await deployments.fixture(["v1", "mocks"])
-
               giveMe7v1 = await ethers.getContractFactory("GiveMe7v1")
               proxy = await upgrades.deployProxy(giveMe7v1)
               await proxy.deployed()
-
-              //   https://stackoverflow.com/questions/69825236/ethers-js-send-money-to-a-smart-contract-receive-function
-              //   await proxy.call{ value: ethers.utils.parseEther("1") }("")
-              //   const prize = await proxy.getPrize()
-              //   console.log(`Initial prize ${prize.toString()}`)
-
-              //   console.log(await proxy.getOwner())
-
-              //   const provider = ethers.getDefaultProvider(network.config.url)
-              //   const balance = await provider.getBalance(proxy.address)
-              //   console.log(`Contract's balance is ${balance}`)
           })
 
-          describe("initialize", () => {
+          describe("Deploy instance v1", () => {
               it("Variables are initialized to 0", async () => {
-                  const nonce = await proxy.getNonce()
-                  const prize = await proxy.getPrize()
+                  nonce = await proxy.getNonce()
+                  prize = await proxy.getPrize()
                   assert.equal(nonce.toString(), "0")
                   assert.equal(prize.toString(), "0")
               })
@@ -52,17 +41,17 @@ chainId != 31337
               })
 
               it("Should emit Roll event", async () => {
-                  const tx = proxy.rollTheDice({ value: ethers.utils.parseEther("0.01") })
-                  await expect(tx).to.emit(proxy, "Roll")
+                  txResponse = proxy.rollTheDice({ value: ethers.utils.parseEther("0.01") })
+                  await expect(txResponse).to.emit(proxy, "Roll")
               })
 
               it("Should increase the nonce", async () => {
                   await proxy.rollTheDice({ value: ethers.utils.parseEther("0.01") })
-                  const nonce = await proxy.getNonce()
+                  nonce = await proxy.getNonce()
                   assert.equal(nonce.toString(), "1")
               })
 
-              describe("find a winner", () => {
+              describe("Find a winner", () => {
                   let roll
 
                   beforeEach(async () => {
@@ -87,31 +76,37 @@ chainId != 31337
                       assert.equal(newNonce.toString(), nonce.toString())
                   })
               })
+
               describe("Hack GiveMe7v1", () => {
                   beforeEach(async () => {
-                      giveMe7v1Standalone = await ethers.getContract("GiveMe7v1Standalone")
-                      hackGiveMe7v1 = await ethers.getContract("RiggedRoll")
+                      const RiggedRoll = await ethers.getContractFactory("RiggedRoll")
+                      hackGiveMe7v1 = await RiggedRoll.deploy(proxy.address)
+                      await hackGiveMe7v1.deployed()
+
                       const accounts = await ethers.getSigners()
                       user = accounts[1]
-                      provider = await ethers.getDefaultProvider(network.config.url)
+                      await user.sendTransaction({
+                          to: hackGiveMe7v1.address,
+                          value: ethers.utils.parseEther("10"),
+                      })
+
                       await hack7()
                   })
 
                   it("Should emit Roll event", async () => {
                       txResponse = await hackGiveMe7v1.riggedRoll()
-                      await expect(txResponse).to.emit(giveMe7v1Standalone, "Roll")
+                      await expect(txResponse).to.emit(proxy, "Roll")
                   })
 
                   it("Should emit Winner event", async () => {
                       txResponse = await hackGiveMe7v1.riggedRoll()
-                      await expect(txResponse).to.emit(giveMe7v1Standalone, "Winner")
+                      await expect(txResponse).to.emit(proxy, "Winner")
                   })
               })
           })
 
-          describe("Should upgrade to GiveMe7v2", () => {
+          describe("Upgrade to instance v2", () => {
               beforeEach(async () => {
-                  await proxy.rollTheDice({ value: ethers.utils.parseEther("0.01") })
                   nonce = await proxy.getNonce()
 
                   vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
@@ -123,7 +118,7 @@ chainId != 31337
                       ethers.utils.parseEther("100")
                   )
 
-                  const giveMe7v2 = await ethers.getContractFactory("GiveMe7v2")
+                  giveMe7v2 = await ethers.getContractFactory("GiveMe7v2")
                   proxy = await upgrades.upgradeProxy(proxy.address, giveMe7v2)
 
                   txResponse = await proxy.setVRF(
@@ -139,72 +134,67 @@ chainId != 31337
                       proxy.address
                   )
                   await txResponse.wait()
+                  txResponse = await proxy.rollTheDice({
+                      value: ethers.utils.parseEther("0.01"),
+                  })
+                  txReceipt = await txResponse.wait()
               })
 
-              describe("GiveMe7v2 Testing", () => {
-                  beforeEach(async () => {
-                      txResponse = await proxy.rollTheDice({
-                          value: ethers.utils.parseEther("0.01"),
-                      })
-                      txReceipt = await txResponse.wait()
-                  })
+              it("Should initiate variables with values from V1", async () => {
+                  nonce++
+                  const upgrNonce = await proxy.getNonce()
+                  assert.equal(nonce.toString(), upgrNonce.toString())
+              })
 
-                  it("Variables are initialized with values from V1", async () => {
-                      nonce++
-                      const upgrNonce = await proxy.getNonce()
-                      assert.equal(nonce.toString(), upgrNonce.toString())
-                  })
+              it("Should allow only the Owner to call setVRF", async () => {
+                  const user1 = (await getNamedAccounts()).user1
+                  await expect(
+                      proxy
+                          .connect(user1)
+                          .setVRF(
+                              vrfCoordinatorV2Mock.address,
+                              subscriptionId,
+                              networkConfig[chainId]["gasLane"],
+                              networkConfig[chainId]["callbackGasLimit"]
+                          )
+                  ).to.be.revertedWith("GiveMe7v2__NotOwner()")
+              })
 
-                  it("Should allow only the Owner to call setVRF", async () => {
-                      const user1 = (await getNamedAccounts()).user1
-                      await expect(
-                          proxy
-                              .connect(user1)
-                              .setVRF(
-                                  vrfCoordinatorV2Mock.address,
-                                  subscriptionId,
-                                  networkConfig[chainId]["gasLane"],
-                                  networkConfig[chainId]["callbackGasLimit"]
-                              )
-                      ).to.be.revertedWith("GiveMe7v2__NotOwner()")
-                  })
+              it("Should RequestRandomNumbers when calling rollTheDice", async () => {
+                  await expect(txResponse).to.emit(proxy, "RequestRandomNumbers")
+              })
 
-                  it("Should RequestRandomNumbers when calling rollTheDice", async () => {
-                      await expect(txResponse).to.emit(proxy, "RequestRandomNumbers")
-                  })
+              it("Should fulfillRandomWords", async () => {
+                  txResponse = await vrfCoordinatorV2Mock.fulfillRandomWords(
+                      txReceipt.events[1].args.requestId,
+                      proxy.address
+                  )
+                  await expect(txResponse).to.emit(proxy, "Roll")
+              })
 
-                  it("Should fulfillRandomWords", async () => {
-                      txResponse = await vrfCoordinatorV2Mock.fulfillRandomWords(
-                          txReceipt.events[1].args.requestId,
-                          proxy.address
-                      )
-                      await expect(txResponse).to.emit(proxy, "Roll")
-                  })
-
-                  it("Should find a Winner", async () => {
-                      let winnerFound = false
-                      do {
-                          await new Promise(async (resolve, reject) => {
-                              proxy.once("Winner", async () => {
-                                  winnerFound = true
-                                  resolve()
-                              })
-
-                              txResponse = await proxy.rollTheDice({
-                                  value: ethers.utils.parseEther("0.01"),
-                              })
-                              txReceipt = await txResponse.wait()
-
-                              await vrfCoordinatorV2Mock.fulfillRandomWords(
-                                  txReceipt.events[1].args.requestId,
-                                  proxy.address
-                              )
-                              setTimeout(() => {
-                                  resolve("timeout")
-                              }, 10000)
+              it("Should find a Winner", async () => {
+                  let winnerFound = false
+                  do {
+                      await new Promise(async (resolve, reject) => {
+                          proxy.once("Winner", async () => {
+                              winnerFound = true
+                              resolve()
                           })
-                      } while (!winnerFound)
-                  })
+
+                          txResponse = await proxy.rollTheDice({
+                              value: ethers.utils.parseEther("0.01"),
+                          })
+                          txReceipt = await txResponse.wait()
+
+                          await vrfCoordinatorV2Mock.fulfillRandomWords(
+                              txReceipt.events[1].args.requestId,
+                              proxy.address
+                          )
+                          setTimeout(() => {
+                              resolve("timeout")
+                          }, 10000)
+                      })
+                  } while (!winnerFound)
               })
           })
       })
@@ -217,11 +207,11 @@ async function hack7() {
         const latestBlockNumber = await provider.getBlockNumber()
         const block = await provider.getBlock(latestBlockNumber)
         const prevHash = block.hash
-        const nonce = await giveMe7v1Standalone.getNonce()
+        const nonce = await proxy.getNonce()
 
         const hash = ethers.utils.solidityKeccak256(
             ["bytes32", "address", "uint256"],
-            [prevHash, giveMe7v1Standalone.address, nonce]
+            [prevHash, proxy.address, nonce]
         )
 
         const bigNum = BigNumber.from(hash)
@@ -230,7 +220,7 @@ async function hack7() {
             break
         }
 
-        await giveMe7v1Standalone.rollTheDice({ value: ethers.utils.parseEther("0.002") })
+        await proxy.rollTheDice({ value: ethers.utils.parseEther("0.002") })
     }
 
     return expectedRoll
