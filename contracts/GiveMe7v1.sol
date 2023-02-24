@@ -17,10 +17,9 @@ error GiveMe7v1__NotOwner();
  * @custom:poc This is a Proxy POC
  */
 contract GiveMe7v1 is Initializable {
-    // TODO: refactor variables (s_, i_, etc.)
-    uint256 internal nonce;
-    uint256 internal prize;
-    address internal owner;
+    uint256 internal s_nonce;
+    uint256 internal s_prize;
+    address internal s_owner;
 
     event Roll(address indexed player, uint256 roll);
     event Winner(address indexed winner, uint256 amount);
@@ -28,7 +27,6 @@ contract GiveMe7v1 is Initializable {
     /**
      * @notice Function needed to let the contract receive ETH
      */
-    // TODO: Use fallback()
     receive() external payable {}
 
     /**
@@ -37,9 +35,9 @@ contract GiveMe7v1 is Initializable {
      */
     function initialize() public payable initializer {
         resetPrize();
-        nonce = 0;
-        prize = 0;
-        owner = msg.sender;
+        s_nonce = 0;
+        s_prize = 0;
+        s_owner = msg.sender;
     }
 
     /**
@@ -52,11 +50,11 @@ contract GiveMe7v1 is Initializable {
         }
 
         bytes32 prevHash = blockhash(block.number - 1);
-        bytes32 hash = keccak256(abi.encodePacked(prevHash, address(this), nonce));
+        bytes32 hash = keccak256(abi.encodePacked(prevHash, address(this), s_nonce));
         uint256 roll = uint256(hash) % 9;
 
-        nonce++;
-        prize += ((msg.value * 90) / 100);
+        s_nonce++;
+        s_prize += ((msg.value * 90) / 100);
 
         emit Roll(msg.sender, roll);
         console.log("Dice rolled ", roll);
@@ -65,14 +63,14 @@ contract GiveMe7v1 is Initializable {
             return;
         }
 
-        uint256 amount = prize;
-        (bool sent, ) = msg.sender.call{value: amount}("");
+        resetPrize();
+
+        (bool sent, ) = msg.sender.call{value: s_prize}("");
         if (!sent) {
             revert GiveMe7v1__TransferFailed();
         }
 
-        resetPrize();
-        emit Winner(msg.sender, amount);
+        emit Winner(msg.sender, s_prize);
     }
 
     /** @notice Getter for the nonce
@@ -80,7 +78,7 @@ contract GiveMe7v1 is Initializable {
      * @return Current nonce
      */
     function getNonce() public view returns (uint256) {
-        return nonce;
+        return s_nonce;
     }
 
     /** @notice Getter for the prize
@@ -88,13 +86,13 @@ contract GiveMe7v1 is Initializable {
      * @return Current prize amount
      */
     function getPrize() public view returns (uint256) {
-        return prize;
+        return s_prize;
     }
 
     /** @notice Reset the prize when there's a winner
      * @dev Prize resets to 90% of this contract balance
      */
     function resetPrize() private {
-        prize = ((address(this).balance * 90) / 100);
+        s_prize = ((address(this).balance * 90) / 100);
     }
 }

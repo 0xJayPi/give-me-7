@@ -15,9 +15,9 @@ error GiveMe7v2__NotOwner();
  * @dev I found that the easiest way to avoid storage collisions when having inheritance is to inherit variables from previous instance
  */
 contract GiveMe7v1Storage {
-    uint256 internal nonce;
-    uint256 internal prize;
-    address internal owner;
+    uint256 internal s_nonce;
+    uint256 internal s_prize;
+    address internal s_owner;
 }
 
 /**
@@ -29,18 +29,16 @@ contract GiveMe7v1Storage {
  * @custom:poc This is a Proxy POC
  */
 contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradeable {
-    // TODO: refactor variables (s_, i_, etc.)
-
     // This mapping is used to track which address made each request of random number. Thus, who won and who lost
-    mapping(uint256 => address) players;
+    mapping(uint256 => address) s_players;
 
     // Chainlink VRF Variables
-    VRFCoordinatorV2Interface private vrfCoordinator;
-    uint64 private subscriptionId;
-    bytes32 private gasLane;
-    uint32 private callbackGasLimit;
-    uint16 private REQUEST_CONFIRMATIONS;
-    uint32 private NUM_WORDS;
+    VRFCoordinatorV2Interface private s_vrfCoordinator;
+    uint64 private s_subscriptionId;
+    bytes32 private s_gasLane;
+    uint32 private s_callbackGasLimit;
+    uint16 private constant REQUEST_CONFIRMATIONS = 3;
+    uint32 private constant NUM_WORDS = 1;
 
     event RequestRandomNumbers(uint256 indexed requestId);
     event Roll(address indexed player, uint256 roll);
@@ -51,7 +49,7 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
      * @dev I didn't used the Ownable.sol contract to avoid complicating further the inheritance when using proxies
      */
     modifier onlyOwner() {
-        if (msg.sender != owner) {
+        if (msg.sender != s_owner) {
             revert GiveMe7v2__NotOwner();
         }
         _;
@@ -60,7 +58,6 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
     /**
      * @notice Function needed to let the contract receive ETH
      */
-    // TODO: Use fallback()
     receive() external payable {}
 
     /**
@@ -78,12 +75,10 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
         uint32 _callbackGasLimit
     ) public onlyOwner {
         __VRFConsumerBaseV2Upgradeable_init(_vrfCoordinatorV2);
-        vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinatorV2);
-        subscriptionId = _subscriptionId;
-        gasLane = _gasLane;
-        callbackGasLimit = _callbackGasLimit;
-        REQUEST_CONFIRMATIONS = 3;
-        NUM_WORDS = 1;
+        s_vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinatorV2);
+        s_subscriptionId = _subscriptionId;
+        s_gasLane = _gasLane;
+        s_callbackGasLimit = _callbackGasLimit;
     }
 
     /**
@@ -95,22 +90,21 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
             revert GiveMe7v2__NotEnoughEth();
         }
 
-        nonce++;
-        prize += ((msg.value * 90) / 100);
+        s_nonce++;
+        s_prize += ((msg.value * 90) / 100);
 
         // Request random numbers to the VRF Coordinator
-        uint256 requestId = vrfCoordinator.requestRandomWords(
-            gasLane,
-            subscriptionId,
+        uint256 requestId = s_vrfCoordinator.requestRandomWords(
+            s_gasLane,
+            s_subscriptionId,
             REQUEST_CONFIRMATIONS,
-            callbackGasLimit,
+            s_callbackGasLimit,
             NUM_WORDS
         );
+        s_players[requestId] = msg.sender;
 
         console.log("Random numbers requested");
-        console.log(address(this));
         emit RequestRandomNumbers(requestId);
-        players[requestId] = msg.sender;
     }
 
     /**
@@ -133,14 +127,14 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
             return;
         }
 
-        uint256 amount = prize;
-        (bool sent, ) = players[requestId].call{value: amount}("");
+        resetPrize();
+
+        (bool sent, ) = s_players[requestId].call{value: s_prize}("");
         if (!sent) {
             revert GiveMe7v2__TransferFailed();
         }
 
-        resetPrize();
-        emit Winner(msg.sender, amount);
+        emit Winner(msg.sender, s_prize);
         console.log("Winner event emitted!");
     }
 
@@ -149,7 +143,7 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
      * @return Current nonce
      */
     function getNonce() public view returns (uint256) {
-        return nonce;
+        return s_nonce;
     }
 
     /** @notice Getter for the prize
@@ -157,7 +151,7 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
      * @return Current prize
      */
     function getPrize() public view returns (uint256) {
-        return prize;
+        return s_prize;
     }
 
     /** @notice Getter for the VRF Coordinator address
@@ -165,13 +159,13 @@ contract GiveMe7v2 is Initializable, GiveMe7v1Storage, VRFConsumerBaseV2Upgradea
      * @return Address of the VRF Coordinator
      */
     function getVrfCoord() public view returns (address) {
-        return address(vrfCoordinator);
+        return address(s_vrfCoordinator);
     }
 
     /** @notice Reset the prize when there's a winner
      * @dev Prize resets to 90% of this contract balance
      */
     function resetPrize() private {
-        prize = ((address(this).balance * 90) / 100);
+        s_prize = ((address(this).balance * 90) / 100);
     }
 }

@@ -17,7 +17,7 @@ error Hack__TransferFailed();
  * @custom:poc This is a Proxy POC
  */
 contract RiggedRoll is Ownable {
-    GiveMe7v1 public i_giveMe7v1;
+    GiveMe7v1 public immutable i_giveMe7v1;
 
     /**
      * @notice constructor called when contract deployed
@@ -32,7 +32,6 @@ contract RiggedRoll is Ownable {
      * @notice Function needed to let the contract receive ETH
      * @dev This contract needs a balance > 0.002 ether cause giveMe7v1.rollTheDice() requires at least this value
      */
-    // TODO: Use fallback()
     receive() external payable {}
 
     /**

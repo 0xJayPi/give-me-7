@@ -1,3 +1,7 @@
+// TODO: Do I need this contract? If so
+// TODO: NatSpec
+// TODO: refactor
+
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.7;
 

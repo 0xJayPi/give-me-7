@@ -100,15 +100,16 @@ abstract contract VRFConsumerBaseV2Upgradeable is Initializable {
     error OnlyCoordinatorCanFulfill(address have, address want);
     address private vrfCoordinator; // immutable removed
 
-    /**
-     * @param _vrfCoordinator address of VRFCoordinator contract
-     */
     // constructor(address _vrfCoordinator) {
     //     vrfCoordinator = _vrfCoordinator;
     // }
 
     // See https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable
     // See https://github.com/smartcontractkit/chainlink/issues/4976
+    /**
+     * @param _vrfCoordinator address of VRFCoordinator contract
+     */
+    // FIXME: No Access Control? WTF??
     function __VRFConsumerBaseV2Upgradeable_init(address _vrfCoordinator) internal {
         vrfCoordinator = _vrfCoordinator;
     }
