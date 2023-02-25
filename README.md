@@ -98,7 +98,12 @@ Proxy: 0x360d94a879B3357304EE132212C377574737E2E5
 
 * Run ```yarn add --dev @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers @nomiclabs/hardhat-etherscan @nomiclabs/hardhat-waffle chai ethereum-waffle hardhat hardhat-deploy hardhat-gas-reporter prettier prettier-plugin-solidity solidity-coverage dotenv @openzeppelin/hardhat-upgrades @openzeppelin/contracts @openzeppelin/contracts-upgradeable @chainlink/contracts```.
 * Add/copy .gitignore, .prettierrc, .prettierignore, README.md, hardhat-config.js, helper-hardhat-config.js
-
+* Fill .env file
+```
+GOERLI_RPC_URL=
+PRIVATE_KEY=
+ETHERSCAN_API_KEY=
+```
 # Usage
 
 ## Deploy to Hardhat
