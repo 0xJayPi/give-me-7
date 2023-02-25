@@ -185,7 +185,7 @@ chainId != 31337
                       await expect(txResponse).to.emit(proxy, "Roll")
                   })
 
-                  it("Should find a Winner", async () => {
+                  it("Should emit Winner event when rolling a 7", async () => {
                       let winnerFound = false
                       do {
                           await new Promise(async (resolve, reject) => {
