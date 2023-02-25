@@ -71,7 +71,9 @@ The test is divided in 3 steps
 * [Chainlikn VRF](https://docs.chain.link/vrf/v2/introduction/)
 * [Speed Run Ethereum, Dice Challenge](https://speedrunethereum.com/challenge/dice-game)
 
-# Sample Contract in Goerli
+## Sample Contract in Goerli
+
+Proxy: 0x360d94a879B3357304EE132212C377574737E2E5
 
 # Getting Started
 
@@ -133,7 +135,7 @@ Head over to [goerlifaucet.com/](https://goerlifaucet.com/) and get some tesnet 
 3. Deploy
 
 ```
-hh deploy --network goerli
+hh deploy --network goerli --tags proxy
 ```
 
 ## Verify on etherscan
