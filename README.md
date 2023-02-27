@@ -40,7 +40,7 @@ Implementation v1 is based on the Dice challenge from the Speed Run Ethereum.
 
 contracts/
 * GiveMe7v1.sol: Implementation that has vulnerability associated with randomness.
-* GiveMe7v1.sol: Implementation that solves vulnerability using Chainlink VRF.
+* GiveMe7v2.sol: Implementation that solves vulnerability using Chainlink VRF.
 * RiggedRoll.sol: Contract that is used to hack v1.
 
 contracts/chainlink/
