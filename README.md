@@ -14,7 +14,7 @@
 
 # Summary
 
-A game where you need to send ETH every time you want to roll the dice. If you get a 7, you get prize in ETH. Otherwise, your ETH acummulates for another lucky player.
+A game where you need to send ETH every time you want to roll the dice. If you get a 7, you win the prize in ETH. Otherwise, your ETH acummulates for another lucky player.
 
 I made this POC to show an Use Case for Upgradeable Proxies. First, we deploy v1 of the implementation (GiveMe7v1.sol) which has a high vulnerability bug related to the source of randomness. Hypothecialy, this bug was not detected during deployment. Hence, it was then addressed in v2 (GiveMe7v2.sol) by means of implementing a secure and decentralized source of randomness (Chainlink VRF).
 
@@ -34,40 +34,40 @@ Implementation v1 is based on the Dice challenge from the Speed Run Ethereum.
 
 * Blockchains are deterministics and, as such, they can't produce true randomness within their own context.
 * Using on-chain information (e.g. block hash) to generate randomness is not secure. An attacker contract could execute the same logic at the same time and predict the resulting number.
-* The best solution we have as of today is tu use decentralized source of randomness like Chainlink VRF, which can't be manipulated by any user, node operator, or malicious actor.
+* The best solution we have, as of today, is to a use decentralized source of randomness like Chainlink VRF, which can't be manipulated by any user, node operator, or malicious actor.
 
 ## Contracts Architecture
 
 contracts/
-* GiveMe7v1.sol: Implementation that has vulnerability associated with randomness
-* GiveMe7v1.sol: Implementation that solves vulnerability using Chainlink VRF
-* RiggedRoll.sol: Contract that is used to hack v1
+* GiveMe7v1.sol: Implementation that has vulnerability associated with randomness.
+* GiveMe7v1.sol: Implementation that solves vulnerability using Chainlink VRF.
+* RiggedRoll.sol: Contract that is used to hack v1.
 
 contracts/chainlink/
-* VRFConsumerBaseV2Upgradeable.sol: VRF coordinator modified to be proxy compatible
+* VRFConsumerBaseV2Upgradeable.sol: VRF coordinator modified to be proxy compatible.
 
 contracts/test/
-* VRFCoordinatorV2Mock.sol: Mock to replicate behaivour of a Chailink VRF
+* VRFCoordinatorV2Mock.sol: Mock to replicate behaivour of a Chailink VRF.
 
 ## Unit Testing
 
-The test is divided in 3 steps
+The test is divided in 3 steps:
 
 1. Deploy implementation v1. 
 2. Hack implementation v1. 
-3. Upgrade to implementation v2
+3. Upgrade to implementation v2.
 
 ## Potential next Upgrades
 
 * Add a second dice and modify the patterns.
 * Add different dices games.
-* Build the frontend
+* Build the frontend.
 
 ## Reference 
 
 * [EIP1976](https://eips.ethereum.org/EIPS/eip-1967)
 * [OpenZeppelin's Proxies](https://docs.openzeppelin.com/contracts/4.x/api/proxy)
-* [OpenZeppelin's Writing Upgradeable](https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable)
+* [OpenZeppelin's Writing Upgradeable Contracts](https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable)
 * [Chainlikn VRF](https://docs.chain.link/vrf/v2/introduction/)
 * [Speed Run Ethereum, Dice Challenge](https://speedrunethereum.com/challenge/dice-game)
 
@@ -98,12 +98,8 @@ Proxy: 0x360d94a879B3357304EE132212C377574737E2E5
 
 * Run ```yarn add --dev @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers @nomiclabs/hardhat-etherscan @nomiclabs/hardhat-waffle chai ethereum-waffle hardhat hardhat-deploy hardhat-gas-reporter prettier prettier-plugin-solidity solidity-coverage dotenv @openzeppelin/hardhat-upgrades @openzeppelin/contracts @openzeppelin/contracts-upgradeable @chainlink/contracts```.
 * Add/copy .gitignore, .prettierrc, .prettierignore, README.md, hardhat-config.js, helper-hardhat-config.js
-* Fill .env file
-```
-GOERLI_RPC_URL=
-PRIVATE_KEY=
-ETHERSCAN_API_KEY=
-```
+* Fill the .env file (see Deploy to a Testnet or Mainnet).
+
 # Usage
 
 ## Deploy to Hardhat
@@ -116,12 +112,12 @@ If needed to deploy again:
 ```
 hh deploy --reset
 ```
-Run tests
+Run tests:
 ```
 hh test
 ```
 
-## Deployment to a testnet or mainnet
+## Deploy to a Testnet or Mainnet
 
 1. Setup environment variabltes
 
@@ -143,7 +139,7 @@ Head over to [goerlifaucet.com/](https://goerlifaucet.com/) and get some tesnet 
 hh deploy --network goerli --tags proxy
 ```
 
-## Verify on etherscan
+## Verify on Etherscan
 
 If you deploy to a testnet or mainnet, you can verify it if you get an [API Key](https://etherscan.io/myapikey) from Etherscan and set it as an environemnt variable named `ETHERSCAN_API_KEY`. 
 

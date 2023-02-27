@@ -4,7 +4,7 @@
 gas-report.txt
 .openzeppelin/
 /bin
-todo.md
+notes.md
 
 # dependencies
 /node_modules
